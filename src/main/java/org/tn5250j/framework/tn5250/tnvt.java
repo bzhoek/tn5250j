@@ -1032,9 +1032,6 @@ public final class tnvt implements Runnable {
                 continue;
             }
 
-            // lets play nicely with the others on the playground
-            //         me.yield();
-
             Thread.yield();
 
             invited = false;
@@ -1060,11 +1057,7 @@ public final class tnvt implements Runnable {
                 case 2:
                     log.debug("Output Only");
                     parseIncoming();
-                    //               System.out.println(screen52.dirty);
                     screen52.updateDirty();
-
-                    //            invited = true;
-
                     break;
                 case 3:
                     log.debug("Put/Get Operation");
@@ -1777,7 +1770,7 @@ public final class tnvt implements Runnable {
      */
     protected void sendNegResponse(int cat, int modifier, int uByte1, int uByte2, String from) {
         try {
-            int os = stream.getByteOffset(-1) & 0xf0;
+            int os = stream.getByteOffset(-1) & 0xff;
             int cp = (stream.getCurrentPos() - 1);
             log.info("invalid " + from + " command " + os + " at pos " + cp);
         } catch (Exception e) {
