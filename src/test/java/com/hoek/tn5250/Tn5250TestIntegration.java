@@ -17,7 +17,6 @@ import org.tn5250j.framework.tn5250.ScreenOIA;
 import java.util.Properties;
 
 import static junit.framework.Assert.assertTrue;
-import static junit.framework.TestCase.assertNotNull;
 
 public class Tn5250TestIntegration {
 
@@ -36,6 +35,10 @@ public class Tn5250TestIntegration {
 
         private final Properties properties;
         private Session5250 session;
+        private boolean connected;
+        private boolean informed;
+        private int informChange;
+        private Screen5250 screen;
 
         public Tn5250Driver(String host, String port) {
             properties = new Properties();
@@ -44,50 +47,75 @@ public class Tn5250TestIntegration {
             properties.put(TN5250jConstants.SESSION_CODE_PAGE, "37");
         }
 
-        public void connect() {
-            SessionManager sessionManager = SessionManager.instance();
-            session = sessionManager.openSession(properties, null, null);
-
+        public Tn5250Driver connect() throws InterruptedException {
+            createSession();
+            session.connect();
+            while (!connected) {
+                Thread.yield();
+            }
+            screen = session.getScreen();
+            addOperatorInformationAreaListener();
+            return this;
         }
 
+        private void createSession() {
+            session = SessionManager.instance().openSession(properties, null, null);
+            session.addSessionListener(new SessionListener() {
+                @Override
+                public void onSessionChanged(SessionChangeEvent changeEvent) {
+                    connected = changeEvent.getState() == TN5250jConstants.STATE_CONNECTED;
+                }
+            });
+        }
+
+        private void addOperatorInformationAreaListener() {
+            session.getScreen().getOIA().addOIAListener(new ScreenOIAListener() {
+                @Override
+                public void onOIAChanged(ScreenOIA oia, int change) {
+                    LOG.debug(String.format("OIA %d", change));
+                    informed = informed | informChange == change;
+                }
+            });
+        }
+
+        public void waitForUnlock() {
+            informed = false;
+            informChange = ScreenOIAListener.OIA_CHANGED_KEYBOARD_LOCKED;
+            while (!informed) {
+                Thread.yield();
+            }
+        }
+
+        public boolean isConnected() {
+            return connected;
+        }
+
+        public Tn5250Driver sendKeys(String keys) {
+            screen.sendKeys(keys);
+            return this;
+        }
+
+        public Tn5250Driver fillCurrentField(String text) {
+            screen.getScreenFields().getCurrentField().setString(text);
+            return this;
+        }
+
+        public void dumpScreen() {
+            screen.dumpScreen();
+        }
     }
 
     Logger LOG = Logger.getLogger(Tn5250TestIntegration.class);
 
     @Test
     public void should_connect_with_pub1() throws InterruptedException {
-        SessionManager sessionManager = SessionManager.instance();
-        Properties props = new Properties();
-        props.put(TN5250jConstants.SESSION_HOST, "pub1.rzkh.de");
-        props.put(TN5250jConstants.SESSION_HOST_PORT, "23");
-        props.put(TN5250jConstants.SESSION_CODE_PAGE, "37");
-
-        Session5250 session = sessionManager.openSession(props, null, null);
-        assertNotNull(session);
-        session.addSessionListener(new SessionListener() {
-            @Override
-            public void onSessionChanged(SessionChangeEvent changeEvent) {
-                LOG.info(changeEvent.getMessage());
-            }
-        });
-        session.connect();
-        Thread.sleep(3000);
-        assertTrue(session.isConnected());
-        Screen5250 screen = session.getScreen();
-        screen.getOIA().addOIAListener(new ScreenOIAListener() {
-            @Override
-            public void onOIAChanged(ScreenOIA oia, int change) {
-                LOG.info(change);
-            }
-        });
-        screen.getScreenFields().getCurrentField().setString(username);
-        screen.sendKeys("[tab]");
-        screen.getScreenFields().getCurrentField().setString(password);
-        screen.sendKeys("[enter]");
-        LOG.info("ENTER");
-        Thread.sleep(3000);
-        screen.sendKeys("[enter]");
-        Thread.sleep(3000);
-        screen.dumpScreen();
+        Tn5250Driver driver = new Tn5250Driver("pub1.rzkh.de", "23").connect();
+        assertTrue(driver.isConnected());
+        driver.fillCurrentField(username).sendKeys("[tab]");
+        driver.fillCurrentField(password);
+        driver.sendKeys("[enter]").waitForUnlock();
+        driver.dumpScreen();
+        driver.sendKeys("[enter]").waitForUnlock();
+        driver.dumpScreen();
     }
 }
