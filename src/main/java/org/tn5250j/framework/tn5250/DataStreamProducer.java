@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 
+import com.hoek.tn5250.Helper;
 import org.tn5250j.encoding.ICodePage;
 import org.tn5250j.tools.logging.TN5250jLogFactory;
 import org.tn5250j.tools.logging.TN5250jLogger;
@@ -95,23 +96,12 @@ public class DataStreamProducer implements Runnable {
         }
     }
 
-    private void log(byte[] block, int index) {
-        log.info(index);
-        for (byte b : block) {
-            System.out.print(String.format("%x ", b & 0xFF));
-        }
-        System.out.println();
-        for (byte b : block) {
-            System.out.print(String.format("%d ", b & 0xFF));
-        }
-        System.out.println();
-    }
 
-    private final void loadStream(byte bytes[], int index) {
+    private void loadStream(byte bytes[], int index) {
         int length = getWord(bytes, index);
         int type = getWord(bytes, index + 2);
         int monkey = getWord(bytes, index + 3) == 0x12A0 ? 1 : 0;
-        log(bytes, index);
+        Helper.dumpBytes(bytes);
         int size;
         if (saveStream == null) {
             size = bytes.length;
