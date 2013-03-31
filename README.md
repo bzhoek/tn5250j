@@ -4,7 +4,7 @@ Meant to simplify Functional Integration Tests on systems that handle 5250 termi
 
 ## Origin
 
-Source from 0.7.0 pulled from (SourceForge)[http://tn5250j.sourceforge.net], and converted to Maven project.
+Source from 0.7.0 pulled from [SourceForge](http://tn5250j.sourceforge.net), and converted to Maven project.
 
 ## Issues
 
