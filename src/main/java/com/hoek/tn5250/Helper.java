@@ -13,7 +13,7 @@ public class Helper {
         for (int i = 0; i < block.length; i++) {
             if (i % 32 == 0) {
                 LOG.info(sb);
-                sb = new StringBuffer(String.format("%04x ", i / 32 * 32));
+                sb = new StringBuffer(String.format("%04x: ", i / 32 * 32));
             }
             if (i % 8 == 0) {
                 sb.append(' ');
