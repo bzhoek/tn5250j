@@ -17,6 +17,7 @@ import org.tn5250j.tools.logging.TN5250jLogger;
 
 public class DataStreamProducer implements Runnable {
 
+    public static final int SNA_GENERAL_DATA_STREAM = 0x12A0;
     private BufferedInputStream bin;
     private ByteArrayOutputStream baosin;
     private Thread me;
@@ -99,8 +100,7 @@ public class DataStreamProducer implements Runnable {
 
     private void loadStream(byte bytes[], int index) {
         int length = getWord(bytes, index);
-        int type = getWord(bytes, index + 2);
-        int monkey = getWord(bytes, index + 3) == 0x12A0 ? 1 : 0;
+        int misaligned = getWord(bytes, index + 3) == SNA_GENERAL_DATA_STREAM ? 1 : 0;
         Helper.dumpBytes(bytes);
         int size;
         if (saveStream == null) {
@@ -124,10 +124,11 @@ public class DataStreamProducer implements Runnable {
             byte record[];
             try {
                 record = new byte[length + 2]; // + EOR (FF EF)
-                System.arraycopy(bytes, index + monkey, record, 0, record.length);
+                System.arraycopy(bytes, index, record, 0, 2);
+                System.arraycopy(bytes, index + 2 + misaligned, record, 2, record.length - 2);
                 queue.put(record);
-                if (bytes.length > record.length + index + monkey)
-                    loadStream(bytes, record.length + index + monkey);
+                if (bytes.length > record.length + index + misaligned)
+                    loadStream(bytes, record.length + index + misaligned);
             } catch (Exception e) {
                 log.warn(e, e);
             }
