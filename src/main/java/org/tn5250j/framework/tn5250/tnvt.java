@@ -122,7 +122,7 @@ public final class tnvt implements Runnable {
     private BufferedInputStream bin;
     private BufferedOutputStream bout;
     private final BlockingQueue<Object> dsq = new ArrayBlockingQueue<Object>(25);
-    private Stream5250 bk;
+    private Stream5250 stream;
     private DataStreamProducer producer;
     protected Screen5250 screen52;
     private boolean waitingForInput;
@@ -852,7 +852,7 @@ public final class tnvt implements Runnable {
 
     protected final int getOpCode() {
 
-        return bk.getOpCode();
+        return stream.getOpCode();
     }
 
     //	private final void sendNotify() throws IOException {
@@ -1020,12 +1020,12 @@ public final class tnvt implements Runnable {
         if (enhanced)
             sfParser = new WTDSFParser(this);
 
-        bk = new Stream5250();
+        stream = new Stream5250();
 
         while (keepTrucking) {
 
             try {
-                bk.initialize((byte[]) dsq.take());
+                stream.initialize((byte[]) dsq.take());
             } catch (InterruptedException ie) {
                 log.warn("   vt thread interrupted and stopping ");
                 keepTrucking = false;
@@ -1042,10 +1042,10 @@ public final class tnvt implements Runnable {
             screen52.setCursorActive(false);
 
             //      System.out.println("operation code: " + bk.getOpCode());
-            if (bk == null)
+            if (stream == null)
                 continue;
 
-            switch (bk.getOpCode()) {
+            switch (stream.getOpCode()) {
                 case 00:
                     log.debug("No operation");
                     break;
@@ -1471,15 +1471,15 @@ public final class tnvt implements Runnable {
         try {
             log.debug("Restore ");
 
-            bk.getNextByte();
-            bk.getNextByte();
+            stream.getNextByte();
+            stream.getNextByte();
 
-            int rows = bk.getNextByte() & 0xff;
-            int cols = bk.getNextByte() & 0xff;
-            int pos = bk.getNextByte() << 8 & 0xff00; // current position
-            pos |= bk.getNextByte() & 0xff;
-            int hPos = bk.getNextByte() << 8 & 0xff00; // home position
-            hPos |= bk.getNextByte() & 0xff;
+            int rows = stream.getNextByte() & 0xff;
+            int cols = stream.getNextByte() & 0xff;
+            int pos = stream.getNextByte() << 8 & 0xff00; // current position
+            pos |= stream.getNextByte() & 0xff;
+            int hPos = stream.getNextByte() << 8 & 0xff00; // home position
+            hPos |= stream.getNextByte() & 0xff;
             if (rows != screen52.getRows())
                 screen52.setRowsCols(rows, cols);
             screen52.clearAll(); // initialize what we currenty have
@@ -1491,13 +1491,13 @@ public final class tnvt implements Runnable {
             int len = rows * cols;
             for (int y = 0; y < len; y++) {
 
-                b = bk.getNextByte();
+                b = stream.getNextByte();
                 if (b == 0x04) {
 
                     log.info(" gui restored at " + y + " - " + screen52.getRow(y) + "," +
                             screen52.getCol(y));
-                    int command = bk.getNextByte();
-                    byte[] seg = bk.getSegment();
+                    int command = stream.getNextByte();
+                    byte[] seg = stream.getSegment();
 
                     if (seg.length > 0) {
                         screen52.goto_XY(y);
@@ -1527,8 +1527,8 @@ public final class tnvt implements Runnable {
                 }
             }
 
-            int numFields = bk.getNextByte() << 8 & 0xff00;
-            numFields |= bk.getNextByte() & 0xff;
+            int numFields = stream.getNextByte() << 8 & 0xff00;
+            numFields |= stream.getNextByte() & 0xff;
             log.debug("number of fields " + numFields);
 
             if (numFields > 0) {
@@ -1545,19 +1545,19 @@ public final class tnvt implements Runnable {
                 ScreenField sf = null;
                 while (x < numFields) {
 
-                    attr = bk.getNextByte();
-                    fPos = bk.getNextByte() << 8 & 0xff00;
-                    fPos |= bk.getNextByte() & 0xff;
-                    if (bk.getNextByte() == 1)
+                    attr = stream.getNextByte();
+                    fPos = stream.getNextByte() << 8 & 0xff00;
+                    fPos |= stream.getNextByte() & 0xff;
+                    if (stream.getNextByte() == 1)
                         mdt = true;
                     else
                         mdt = false;
-                    fLen = bk.getNextByte() << 8 & 0xff00;
-                    fLen |= bk.getNextByte() & 0xff;
-                    ffw1 = bk.getNextByte();
-                    ffw2 = bk.getNextByte();
-                    fcw1 = bk.getNextByte();
-                    fcw2 = bk.getNextByte();
+                    fLen = stream.getNextByte() << 8 & 0xff00;
+                    fLen |= stream.getNextByte() & 0xff;
+                    ffw1 = stream.getNextByte();
+                    ffw2 = stream.getNextByte();
+                    fcw1 = stream.getNextByte();
+                    fcw2 = stream.getNextByte();
 
                     sf = screen52.getScreenFields().setField(attr,
                             screen52.getRow(fPos), screen52.getCol(fPos), fLen,
@@ -1618,8 +1618,8 @@ public final class tnvt implements Runnable {
         boolean error = false;
 
         try {
-            while (bk.hasNext() && !done) {
-                byte b = bk.getNextByte();
+            while (stream.hasNext() && !done) {
+                byte b = stream.getNextByte();
 
                 switch (b) {
                     case 0:
@@ -1635,8 +1635,8 @@ public final class tnvt implements Runnable {
                         break;
                     case 7: // audible bell
                         controller.signalBell();
-                        bk.getNextByte();
-                        bk.getNextByte();
+                        stream.getNextByte();
+                        stream.getNextByte();
                         break;
                     case CMD_WRITE_TO_DISPLAY: // 0x11 17 write to display
                         error = writeToDisplay(true);
@@ -1655,7 +1655,7 @@ public final class tnvt implements Runnable {
                         break;
 
                     case CMD_CLEAR_UNIT_ALTERNATE: // 0x20 32 clear unit alternate
-                        int param = bk.getNextByte();
+                        int param = stream.getNextByte();
                         if (param != 0) {
                             log.debug(" clear unit alternate error "
                                     + Integer.toHexString(param));
@@ -1704,8 +1704,8 @@ public final class tnvt implements Runnable {
 
                     case CMD_READ_INPUT_FIELDS: //0x42 66 read input fields
                     case CMD_READ_MDT_FIELDS: // 0x52 82 read MDT Fields
-                        bk.getNextByte();
-                        bk.getNextByte();
+                        stream.getNextByte();
+                        stream.getNextByte();
                         readType = b;
                         screen52.goHome();
                         // do nothing with the cursor here it is taken care of
@@ -1727,16 +1727,15 @@ public final class tnvt implements Runnable {
                         writeStructuredField();
                         break;
                     case CMD_ROLL: // 0x23 35 Roll Not sure what it does right now
-                        int updown = bk.getNextByte();
-                        int topline = bk.getNextByte();
-                        int bottomline = bk.getNextByte();
+                        int updown = stream.getNextByte();
+                        int topline = stream.getNextByte();
+                        int bottomline = stream.getNextByte();
                         screen52.rollScreen(updown, topline, bottomline);
                         break;
 
                     default:
                         done = true;
-                        sendNegResponse(NR_REQUEST_ERROR, 03, 01, 01,
-                                "parseIncoming");
+                        sendNegResponse(NR_REQUEST_ERROR, 03, 01, 01, "parseIncoming");
                         break;
                 }
 
@@ -1778,8 +1777,8 @@ public final class tnvt implements Runnable {
      */
     protected void sendNegResponse(int cat, int modifier, int uByte1, int uByte2, String from) {
         try {
-            int os = bk.getByteOffset(-1) & 0xf0;
-            int cp = (bk.getCurrentPos() - 1);
+            int os = stream.getByteOffset(-1) & 0xf0;
+            int cp = (stream.getCurrentPos() - 1);
             log.info("invalid " + from + " command " + os + " at pos " + cp);
         } catch (Exception e) {
             log.warn("Send Negative Response error " + e.getMessage());
@@ -1793,11 +1792,9 @@ public final class tnvt implements Runnable {
         try {
             writeGDS(128, 0, baosp.toByteArray());
         } catch (IOException ioe) {
-
             log.warn(ioe.getMessage());
         }
         baosp.reset();
-
     }
 
     public void sendNegResponse2(int ec) {
@@ -1828,17 +1825,17 @@ public final class tnvt implements Runnable {
 
         try {
             if (controlsExist) {
-                control0 = bk.getNextByte();
-                control1 = bk.getNextByte();
+                control0 = stream.getNextByte();
+                control1 = stream.getNextByte();
                 processCC0(control0);
             }
-            while (bk.hasNext() && !done) {
+            while (stream.hasNext() && !done) {
                 //            pos = bk.getCurrentPos();
 
                 //            int rowc = screen52.getCurrentRow();
                 //            int colc = screen52.getCurrentCol();
 
-                byte bytebk = bk.getNextByte();
+                byte bytebk = stream.getNextByte();
 
                 switch (bytebk) {
 
@@ -1852,10 +1849,10 @@ public final class tnvt implements Runnable {
                         int row = screen52.getCurrentRow();
                         int col = screen52.getCurrentCol();
 
-                        int toRow = bk.getNextByte();
-                        int toCol = bk.getNextByte() & 0xff;
+                        int toRow = stream.getNextByte();
+                        int toCol = stream.getNextByte() & 0xff;
                         if (toRow >= row) {
-                            int repeat = bk.getNextByte();
+                            int repeat = stream.getNextByte();
 
                             // a little intelligence here I hope
                             if (row == 1 && col == 2 && toRow == screen52.getRows()
@@ -1888,12 +1885,12 @@ public final class tnvt implements Runnable {
                         int EArow = screen52.getCurrentRow();
                         int EAcol = screen52.getCurrentCol();
 
-                        int toEARow = bk.getNextByte();
-                        int toEACol = bk.getNextByte() & 0xff;
-                        int EALength = bk.getNextByte() & 0xff;
+                        int toEARow = stream.getNextByte();
+                        int toEACol = stream.getNextByte() & 0xff;
+                        int EALength = stream.getNextByte() & 0xff;
                         while (--EALength > 0) {
 
-                            bk.getNextByte();
+                            stream.getNextByte();
 
                         }
                         char EAAttr = (char) 0;
@@ -1919,14 +1916,14 @@ public final class tnvt implements Runnable {
 
                     case 16: // TD - Transparent Data
                         log.debug("TD - Transparent Data");
-                        int j = (bk.getNextByte() & 0xff) << 8 | bk.getNextByte()
+                        int j = (stream.getNextByte() & 0xff) << 8 | stream.getNextByte()
                                 & 0xff; // length
                         break;
 
                     case 17: // SBA - set buffer address order (row column)
                         log.debug("SBA - set buffer address order (row column)");
-                        int saRow = bk.getNextByte();
-                        int saCol = bk.getNextByte() & 0xff;
+                        int saRow = stream.getNextByte();
+                        int saCol = stream.getNextByte() & 0xff;
                         // make sure it is in bounds
                         if (saRow >= 0 && saRow <= screen52.getRows() && saCol >= 0
                                 && saCol <= screen52.getColumns()) {
@@ -1947,14 +1944,14 @@ public final class tnvt implements Runnable {
 
                     case 18: // WEA - Extended Attribute
                         log.debug("WEA - Extended Attribute");
-                        bk.getNextByte();
-                        bk.getNextByte();
+                        stream.getNextByte();
+                        stream.getNextByte();
                         break;
 
                     case 19: // IC - Insert Cursor
                         log.debug("IC - Insert Cursor");
-                        int icX = bk.getNextByte();
-                        int icY = bk.getNextByte() & 0xff;
+                        int icX = stream.getNextByte();
+                        int icY = stream.getNextByte() & 0xff;
                         if (icX >= 0 && icX <= saRows && icY >= 0 && icY <= saCols) {
 
                             log.debug(" IC " + icX + " " + icY);
@@ -1969,8 +1966,8 @@ public final class tnvt implements Runnable {
 
                     case 20: // MC - Move Cursor
                         log.debug("MC - Move Cursor");
-                        int imcX = bk.getNextByte();
-                        int imcY = bk.getNextByte() & 0xff;
+                        int imcX = stream.getNextByte();
+                        int imcY = stream.getNextByte() & 0xff;
                         if (imcX >= 0 && imcX <= saRows && imcY >= 0
                                 && imcY <= saCols) {
 
@@ -1987,7 +1984,7 @@ public final class tnvt implements Runnable {
                     case 21: // WTDSF - Write To Display Structured Field order
                         log
                                 .debug("WTDSF - Write To Display Structured Field order");
-                        byte[] seg = bk.getSegment();
+                        byte[] seg = stream.getSegment();
                         error = sfParser.parseWriteToDisplayStructuredField(seg);
 
                         //                  error = writeToDisplayStructuredField();
@@ -1998,27 +1995,27 @@ public final class tnvt implements Runnable {
                         int fcw1 = 0;
                         int fcw2 = 0;
                         int ffw1 = 0;
-                        int ffw0 = bk.getNextByte() & 0xff; // FFW
+                        int ffw0 = stream.getNextByte() & 0xff; // FFW
 
                         if ((ffw0 & 0x40) == 0x40) {
-                            ffw1 = bk.getNextByte() & 0xff; // FFW 1
+                            ffw1 = stream.getNextByte() & 0xff; // FFW 1
 
-                            fcw1 = bk.getNextByte() & 0xff; // check for field
+                            fcw1 = stream.getNextByte() & 0xff; // check for field
                             // control word
 
                             // check if the first fcw1 is an 0x81 if it is then get
                             // the
                             // next pair for checking
                             if (fcw1 == 0x81) {
-                                bk.getNextByte();
-                                fcw1 = bk.getNextByte() & 0xff; // check for field
+                                stream.getNextByte();
+                                fcw1 = stream.getNextByte() & 0xff; // check for field
                                 // control word
                             }
 
                             if (!isAttribute(fcw1)) {
 
-                                fcw2 = bk.getNextByte() & 0xff; // FCW 2
-                                attr = bk.getNextByte() & 0xff; // attribute field
+                                fcw2 = stream.getNextByte() & 0xff; // FCW 2
+                                attr = stream.getNextByte() & 0xff; // attribute field
 
                                 while (!isAttribute(attr)) {
                                     log.info(Integer.toHexString(fcw1) + " "
@@ -2026,10 +2023,10 @@ public final class tnvt implements Runnable {
                                             + " ");
                                     log.info(Integer.toHexString(attr)
                                             + " "
-                                            + Integer.toHexString(bk
+                                            + Integer.toHexString(stream
                                             .getNextByte() & 0xff));
                                     //                           bk.getNextByte();
-                                    attr = bk.getNextByte() & 0xff; // attribute
+                                    attr = stream.getNextByte() & 0xff; // attribute
                                     // field
                                 }
                             } else {
@@ -2040,8 +2037,8 @@ public final class tnvt implements Runnable {
                             attr = ffw0;
                         }
 
-                        int fLength = (bk.getNextByte() & 0xff) << 8
-                                | bk.getNextByte() & 0xff;
+                        int fLength = (stream.getNextByte() & 0xff) << 8
+                                | stream.getNextByte() & 0xff;
                         screen52.addField(attr, fLength, ffw0, ffw1, fcw1, fcw2);
 
                         break;
@@ -2056,7 +2053,7 @@ public final class tnvt implements Runnable {
                         int[] pcoOk = {0xfc, 0xd7, 0xc3, 0xd6, 0x40, 0x83, 0x80, 0xa1, 0x80};
 
                         for (int i = 0; i < 9; i++) {
-                            b = bk.getNextByte();
+                            b = stream.getNextByte();
                             pco[i] = ((b & 0xff));
                             c = codePage.ebcdic2uni(b);
                             value.append(c);
@@ -2069,7 +2066,7 @@ public final class tnvt implements Runnable {
                         // we return in the stream to have all chars
                         // arrive at the screen for later processing
                         for (int i = 0; i < 9; i++)
-                            bk.setPrevByte();
+                            stream.setPrevByte();
                         //}
                         // no break: so every chars arrives
                         // on the screen for later parsing
@@ -2077,7 +2074,7 @@ public final class tnvt implements Runnable {
 
                     default: // all others must be output to screen
                         log.debug("all others must be output to screen");
-                        byte byte0 = bk.getByteOffset(-1);
+                        byte byte0 = stream.getByteOffset(-1);
                         if (isAttribute(byte0)) {
                             screen52.setAttr(byte0);
                         } else {
@@ -2124,13 +2121,13 @@ public final class tnvt implements Runnable {
 
     private boolean processSOH() throws Exception {
 
-        int l = bk.getNextByte(); // length
+        int l = stream.getNextByte(); // length
         log.debug(" byte 0 " + l);
 
         if (l > 0 && l <= 7) {
-            bk.getNextByte(); // flag byte 2
-            bk.getNextByte(); // reserved
-            bk.getNextByte(); // resequence fields
+            stream.getNextByte(); // flag byte 2
+            stream.getNextByte(); // reserved
+            stream.getNextByte(); // resequence fields
 
             screen52.clearTable();
 
@@ -2140,11 +2137,11 @@ public final class tnvt implements Runnable {
             if (l <= 3)
                 return false;
 
-            screen52.setErrorLine(bk.getNextByte()); // error row
+            screen52.setErrorLine(stream.getNextByte()); // error row
 
             int byte1 = 0;
             if (l >= 5) {
-                byte1 = bk.getNextByte();
+                byte1 = stream.getNextByte();
                 dataIncluded[23] = (byte1 & 0x80) == 0x80;
                 dataIncluded[22] = (byte1 & 0x40) == 0x40;
                 dataIncluded[21] = (byte1 & 0x20) == 0x20;
@@ -2156,7 +2153,7 @@ public final class tnvt implements Runnable {
             }
 
             if (l >= 6) {
-                byte1 = bk.getNextByte();
+                byte1 = stream.getNextByte();
                 dataIncluded[15] = (byte1 & 0x80) == 0x80;
                 dataIncluded[14] = (byte1 & 0x40) == 0x40;
                 dataIncluded[13] = (byte1 & 0x20) == 0x20;
@@ -2168,7 +2165,7 @@ public final class tnvt implements Runnable {
             }
 
             if (l >= 7) {
-                byte1 = bk.getNextByte();
+                byte1 = stream.getNextByte();
                 dataIncluded[7] = (byte1 & 0x80) == 0x80;
                 dataIncluded[6] = (byte1 & 0x40) == 0x40;
                 dataIncluded[5] = (byte1 & 0x20) == 0x20;
@@ -2349,26 +2346,26 @@ public final class tnvt implements Runnable {
 
         boolean done = false;
         try {
-            int length = ((bk.getNextByte() & 0xff) << 8 | (bk.getNextByte() & 0xff));
-            while (bk.hasNext() && !done) {
-                switch (bk.getNextByte()) {
+            int length = ((stream.getNextByte() & 0xff) << 8 | (stream.getNextByte() & 0xff));
+            while (stream.hasNext() && !done) {
+                switch (stream.getNextByte()) {
 
                     case -39: // SOH - Start of Header Order
 
-                        switch (bk.getNextByte()) {
+                        switch (stream.getNextByte()) {
                             case 112: // 5250 Query
-                                bk.getNextByte(); // get null required field
+                                stream.getNextByte(); // get null required field
                                 sendQueryResponse();
                                 break;
                             default:
                                 log.debug("invalid structured field sub command "
-                                        + bk.getByteOffset(-1));
+                                        + stream.getByteOffset(-1));
                                 break;
                         }
                         break;
                     default:
                         log.debug("invalid structured field command "
-                                + bk.getByteOffset(-1));
+                                + stream.getByteOffset(-1));
                         break;
                 }
             }
@@ -2388,8 +2385,8 @@ public final class tnvt implements Runnable {
     }
 
     private final void writeErrorCodeToWindow() throws Exception {
-        int fromCol = bk.getNextByte() & 0xff; // from column
-        int toCol = bk.getNextByte() & 0xff; // to column
+        int fromCol = stream.getNextByte() & 0xff; // from column
+        int toCol = stream.getNextByte() & 0xff; // to column
         screen52.setCursor(screen52.getErrorLine(), fromCol); // Skip the control
         // byte
         screen52.setStatus(Screen5250.STATUS_ERROR_CODE,
