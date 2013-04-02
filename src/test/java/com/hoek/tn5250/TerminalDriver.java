@@ -84,6 +84,9 @@ public class TerminalDriver {
     }
 
     public void dumpScreen() {
-        screen.dumpScreen();
+        char[] chars = screen.getScreenAsChars();
+        for (int r = 0; r < screen.getRows(); r++) {
+            LOG.info(String.copyValueOf(chars, r * screen.getColumns(), screen.getColumns()));
+        }
     }
 }
