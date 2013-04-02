@@ -11,8 +11,9 @@
 
 
 #|script|terminal driver|pub1.rzkh.net|23|
-|script|terminal driver|localhost|2023|
-|connect|
+#|script|terminal driver|localhost|2023|
+#|connect|
 
-# |script|fit nesse fixture|
-# |login with username|bla|and password|bla|
+|script|terminal fixture|localhost|2023|
+|connect|
+|login with username|BVDHOEK|and password|${password}|
