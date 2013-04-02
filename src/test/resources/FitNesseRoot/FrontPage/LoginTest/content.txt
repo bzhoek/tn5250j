@@ -1,0 +1,18 @@
+!path /Users/bas/ics/5250slim/fitnesse-standalone.jar
+!path ${classPath}
+!path /Users/bas/ics/5250slim/target/classes
+!path /Users/bas/ics/5250slim/target/test-classes
+!define TEST_SYSTEM {slim}
+
+!contents -R2 -g -p -f -h
+
+|import|
+|com.hoek.tn5250|
+
+
+#|script|terminal driver|pub1.rzkh.net|23|
+|script|terminal driver|localhost|2023|
+|connect|
+
+# |script|fit nesse fixture|
+# |login with username|bla|and password|bla|
