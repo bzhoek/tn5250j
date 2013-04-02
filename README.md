@@ -1,6 +1,15 @@
 # tn5250j
 
-Meant to simplify Functional Integration Tests on systems that handle 5250 terminals.
+Meant to simplify Functional Integration Tests with [FitNesse](fitnesse.org) on systems that handle 5250 terminals.
+![Image](/doc/rkzh.jpg)
+
+## Usage
+
+The Maven `pom.xml` takes care of running FitNesse with the correct classpath.
+
+    $ mvn integration-test -Dpassword={pw}
+
+Use `com.hoek.tn5250.TerminalDriver` to driver terminal screens.
 
 ## Origin
 
