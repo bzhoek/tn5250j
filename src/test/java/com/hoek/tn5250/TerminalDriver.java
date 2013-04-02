@@ -8,6 +8,7 @@ import org.tn5250j.event.SessionChangeEvent;
 import org.tn5250j.event.SessionListener;
 import org.tn5250j.framework.common.SessionManager;
 import org.tn5250j.framework.tn5250.Screen5250;
+import org.tn5250j.framework.tn5250.ScreenField;
 import org.tn5250j.framework.tn5250.ScreenOIA;
 
 import java.util.Properties;
@@ -79,8 +80,31 @@ public class TerminalDriver {
     }
 
     public TerminalDriver fillCurrentField(String text) {
-        screen.getScreenFields().getCurrentField().setString(text);
+        ScreenField currentField = screen.getScreenFields().getCurrentField();
+        LOG.info(String.format("cursor: %d %d", currentField.startRow(), currentField.startCol()));
+        currentField.setString(text);
         return this;
+    }
+
+    public TerminalDriver fillFieldWith(String label, String text) {
+        String contents = new String(screen.getCharacters());
+        int index = findIndexOrFail(label, contents);
+        ScreenField field = null;
+        while (field == null && index < contents.length()) {
+            field = screen.getScreenFields().findByPosition(index++);
+        }
+        if (field == null) {
+            throw new IllegalStateException(String.format("Could not find field after label %s"));
+        }
+        field.setString(text);
+        return this;
+    }
+
+    private int findIndexOrFail(String label, String contents) {
+        if (!contents.contains(label)) {
+            throw new IllegalStateException(String.format("Could not find label %s on screen"));
+        }
+        return contents.indexOf(label);
     }
 
     public void dumpScreen() {

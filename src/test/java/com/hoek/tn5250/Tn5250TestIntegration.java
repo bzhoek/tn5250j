@@ -28,8 +28,9 @@ public class Tn5250TestIntegration {
         TerminalDriver driver = new TerminalDriver("localhost", "2023").connect();
 //        TerminalDriver driver = new TerminalDriver("pub1.rzkh.de", "23").connect();
         assertTrue(driver.isConnected());
-        driver.fillCurrentField(username).sendKeys("[tab]");
-        driver.fillCurrentField(password);
+        driver.dumpScreen();
+        driver.fillFieldWith("Benutzer", username);
+        driver.fillFieldWith("Password", password);
         driver.sendKeys("[enter]").waitForUnlock();
         driver.dumpScreen();
         driver.sendKeys("[enter]").waitForUnlock();
