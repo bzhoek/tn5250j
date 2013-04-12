@@ -9,11 +9,14 @@
 |import|
 |com.hoek.tn5250|
 
-
-#|script|terminal driver|pub1.rzkh.net|23|
-#|script|terminal driver|localhost|2023|
-#|connect|
-
-|script|terminal fixture|localhost|2023|
+#|script|terminal fixture|localhost|2023|
+|script|terminal fixture|pub1.rzkh.de|23|
 |connect|
-|login with username|BVDHOEK|and password|${password}|
+|login with username|${username}|and password|${password}|
+|check|screen name|Sign-on Information|
+|enter|
+|command|WRKQRY|
+|fill|Option|with|1|
+|enter|
+|enter|
+

@@ -127,7 +127,7 @@ public class TerminalDriver {
         assert getScreenContent().getLine(0).contains(name) : String.format("Screen is not '%s'", name);
     }
 
-    private ScreenContent getScreenContent() {
+    public ScreenContent getScreenContent() {
         return new ScreenContent(session);
     }
 
