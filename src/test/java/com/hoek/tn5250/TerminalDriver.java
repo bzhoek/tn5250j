@@ -140,9 +140,9 @@ public class TerminalDriver {
         return this;
     }
 
-    public void lastLine() {
+    public String lastReportLine() {
+        ScreenContent content = getScreenContent();
         fillFieldWith("Position to line", "B").sendEnter();
-        getScreenContent();
-        //********  End of report  ********
+        return content.getLine(content.lineOf("********  End of report  ********") - 1);
     }
 }

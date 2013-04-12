@@ -1,10 +1,10 @@
 package com.hoek.tn5250;
 
 
-import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -20,8 +20,6 @@ public class TerminalDriverTestIntegration {
         assertNotNull("-Dusername= not specified", username);
         assertNotNull("-Dpassword= not specified", password);
     }
-
-    Logger LOG = Logger.getLogger(TerminalDriverTestIntegration.class);
 
     @Test
     public void should_connect_with_pub1() throws InterruptedException {
@@ -40,6 +38,7 @@ public class TerminalDriverTestIntegration {
         driver.fillFieldWith("File", "BLA").sendEnter().sendEnter();
         driver.select("Define result fields", "1").sendEnter();
         driver.sendKeys("[pf5]").waitForUnlock();
-        driver.lastLine();
+        driver.fillFieldWith("Shift to column", "20").sendEnter();
+        assertEquals("000022\u0000  /* LAST CALL */", driver.lastReportLine());
     }
 }

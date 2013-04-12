@@ -36,18 +36,28 @@ public class ScreenContent {
     }
 
     public String getLine(int row) {
-        return String.copyValueOf(chars, row * screen.getColumns(), screen.getColumns());
+        return String.copyValueOf(chars, row * screen.getColumns(), screen.getColumns()).trim();
     }
 
     public int length() {
         return chars.length;
     }
 
-    public int indexOf(String label) {
-        if (!contents.contains(label)) {
-            throw new IllegalStateException(String.format("Could not find label %s on screen", label));
+    public int indexOf(String text) {
+        if (!contents.contains(text)) {
+            throw new IllegalStateException(String.format("Could not find text %s on screen", text));
         }
-        return contents.indexOf(label);
+        return contents.indexOf(text);
+    }
+
+    public int lineOf(String text) {
+        List<String> lines = getLines();
+        for (int row = 0; row < lines.size(); row++) {
+            if (lines.get(row).contains(text)) {
+                return row;
+            }
+        }
+        throw new IllegalStateException(String.format("Could not find row with text %s on screen", text));
     }
 
 }
