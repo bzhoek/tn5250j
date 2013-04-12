@@ -68,6 +68,11 @@ public class TerminalDriver {
         while (!informed) {
             Thread.yield();
         }
+        dumpScreen();
+
+        if (getScreenContent().getLine(0).contains("Display Program Messages")) {
+            sendKeys("[enter]").waitForUnlock();
+        }
     }
 
     public boolean isConnected() {
@@ -86,31 +91,58 @@ public class TerminalDriver {
         return this;
     }
 
-    public TerminalDriver fillFieldWith(String label, String text) {
-        String contents = new String(screen.getCharacters());
-        int index = findIndexOrFail(label, contents);
+    public TerminalDriver select(String label, String text) {
+        ScreenContent content = getScreenContent();
+        int index = content.indexOf(label);
         ScreenField field = null;
-        while (field == null && index < contents.length()) {
-            field = screen.getScreenFields().findByPosition(index++);
+        while (field == null && index > 0) {
+            field = screen.getScreenFields().findByPosition(index--);
         }
         if (field == null) {
-            throw new IllegalStateException(String.format("Could not find field after label %s"));
+            throw new IllegalStateException(String.format("Could not find field *before* label %s"));
         }
         field.setString(text);
         return this;
     }
 
-    private int findIndexOrFail(String label, String contents) {
-        if (!contents.contains(label)) {
-            throw new IllegalStateException(String.format("Could not find label %s on screen"));
+    public TerminalDriver fillFieldWith(String label, String text) {
+        ScreenContent content = getScreenContent();
+        int index = content.indexOf(label);
+        ScreenField field = null;
+        while (field == null && index < content.length()) {
+            field = screen.getScreenFields().findByPosition(index++);
         }
-        return contents.indexOf(label);
+        if (field == null) {
+            throw new IllegalStateException(String.format("Could not find field *after* label %s"));
+        }
+        field.setString(text);
+        return this;
     }
 
     public void dumpScreen() {
-        char[] chars = screen.getScreenAsChars();
-        for (int r = 0; r < screen.getRows(); r++) {
-            LOG.info(String.copyValueOf(chars, r * screen.getColumns(), screen.getColumns()));
-        }
+        getScreenContent().dumpScreen();
+    }
+
+    public void assertScreen(String name) {
+        assert getScreenContent().getLine(0).contains(name) : String.format("Screen is not '%s'", name);
+    }
+
+    private ScreenContent getScreenContent() {
+        return new ScreenContent(session);
+    }
+
+    public void sendCommand(String command) {
+        fillFieldWith("===>", command).sendEnter();
+    }
+
+    public TerminalDriver sendEnter() {
+        sendKeys("[enter]").waitForUnlock();
+        return this;
+    }
+
+    public void lastLine() {
+        fillFieldWith("Position to line", "B").sendEnter();
+        getScreenContent();
+        //********  End of report  ********
     }
 }
