@@ -7,7 +7,7 @@ Meant to simplify Functional Integration Tests with [FitNesse](fitnesse.org) on 
 
 The Maven `pom.xml` takes care of running FitNesse with the correct classpath.
 
-    $ mvn integration-test -Dpassword={pw}
+    $ mvn integration-test -Dusername={username} -Dpassword={password}
 
 Use `com.hoek.tn5250.TerminalDriver` to driver terminal screens.
 

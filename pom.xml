@@ -92,6 +92,7 @@
                                     <jvmarg value="-DmavenRepository=${settings.localRepository}"/>
                                     <jvmarg value="-DclassPath=${test_classpath}${path.separator}target/test-classes"/>
                                     <jvmarg value="-DcommandPattern=java -cp ${classPath} %m"/>
+                                    <jvmarg value="-Dusername=${username}"/>
                                     <jvmarg value="-Dpassword=${password}"/>
                                     <!-- Working directory -->
                                     <arg line="-r src/test/resources/FitNesseRoot"/>
