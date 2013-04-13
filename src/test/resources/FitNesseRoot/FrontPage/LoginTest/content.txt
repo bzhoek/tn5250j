@@ -1,14 +1,9 @@
-!path /Users/bas/ics/5250slim/fitnesse-standalone.jar
+!*> Path
 !path ${classPath}
-!path /Users/bas/ics/5250slim/target/classes
-!path /Users/bas/ics/5250slim/target/test-classes
 !define TEST_SYSTEM {slim}
-
-!contents -R2 -g -p -f -h
-
 |import|
 |com.hoek.tn5250|
-
+*!
 #|script|terminal fixture|localhost|2023|
 |script|terminal fixture|pub1.rzkh.de|23|
 |connect|
@@ -17,6 +12,14 @@
 |enter|
 |command|WRKQRY|
 |fill|Option|with|1|
+|enter|2|
+|fill|File|with|BLA|
+|enter|2|
+|select|Define result fields|with|1|
+|hit|pf5|wait|
+|fill|Shift to column|with|20|
 |enter|
-|enter|
+|check|last report line|000022   /* LAST CALL */|
+|show|screen contents|
+
 
