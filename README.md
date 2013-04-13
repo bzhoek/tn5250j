@@ -9,7 +9,7 @@ The Maven `pom.xml` takes care of running FitNesse with the correct classpath.
 
     $ mvn integration-test -Dusername={username} -Dpassword={password}
 
-Use `com.hoek.tn5250.TerminalDriver` to driver terminal screens.
+Use `com.hoek.tn5250.TerminalDriver` to drive terminal screens.
 
 ## Origin
 
