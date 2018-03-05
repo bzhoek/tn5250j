@@ -3,11 +3,15 @@
 Meant to simplify Functional Integration Tests with [FitNesse](fitnesse.org) on systems that handle 5250 terminals.
 ![Image](/doc/rkzh.jpg)
 
-## Usage
+## Client
+
+    $ java -jar target/tn5250j.slim-1.0-SNAPSHOT.jar
+
+## FitNesse
 
 The Maven `pom.xml` takes care of running FitNesse with the correct classpath.
 
-    $ mvn integration-test -Dusername={username} -Dpassword={password}
+    $ mvn -P fitnesse integration-test -Dusername={username} -Dpassword={password}
 
 Use `com.hoek.tn5250.TerminalDriver` to drive terminal screens.
 
