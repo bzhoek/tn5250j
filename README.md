@@ -1,7 +1,7 @@
 # tn5250j
 
 Meant to simplify Functional Integration Tests with [FitNesse](fitnesse.org) on systems that handle 5250 terminals.
-![Image](/doc/rkzh.jpg)
+![Image](/doc/pub400.png)
 
 ## Client
 
@@ -15,9 +15,13 @@ The Maven `pom.xml` takes care of running FitNesse with the correct classpath.
 
 Use `com.hoek.tn5250.TerminalDriver` to drive terminal screens.
 
+## Testing
+
+You can get a test account on [PUB400](http://http://pub400.com).
+
 ## Origin
 
-Source from 0.7.0 pulled from [SourceForge](http://tn5250j.sourceforge.net), and converted to Maven project.
+Source from 0.7.0 pulled from [SourceForge](http://tn5250j.sourceforge.net), and converted to Maven project. Since then, it was migrated to [GitHub](https://github.com/tn5250j/tn5250j).
 
 ## Issues
 
