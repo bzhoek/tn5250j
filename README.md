@@ -17,7 +17,7 @@ Use `com.hoek.tn5250.TerminalDriver` to drive terminal screens.
 
 ## Testing
 
-You can get a test account on [PUB400](http://http://pub400.com).
+You can get a test account on [PUB400](https://pub400.com).
 
 ## Origin
 
